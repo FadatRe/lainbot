@@ -1,5 +1,5 @@
 local function run(msg, matches)
-  return "fag"
+  return "alek is the savior of lainbot, pls dont forget"
 end
 
 return {
