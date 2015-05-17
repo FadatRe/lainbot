@@ -136,7 +136,8 @@ do
 		usage = "!glitch [url] [amount]: glitches the JPEG image retrieved from _url_ " .. 
 				"by corrupting _amount_ bytes. Amount is optional and defaults to 20 bytes.", 
 		patterns = {
-			"^!glitch ([^ ]*) ?([0-9]*)?$"
+			"^!glitch ([^ ]*) ([0-9]*)$", 
+			"^!glitch ([^ ]*)$"
 		}, 
 		run = run
 	}
