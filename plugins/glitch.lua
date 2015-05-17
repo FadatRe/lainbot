@@ -1,3 +1,4 @@
+-- JPEG Glitcher v1.1
 -- Contributed by Francesco <https://github.com/Francesco149>
 do
 	local KILOBYTE = 1000
@@ -46,6 +47,7 @@ do
 		local stamp = os.time()
 
 		-- try checking file size from a HEAD request
+		local default_timeout = http.TIMEOUT
 		http.TIMEOUT = 5
 		local _, code, headers, status = http.request {
 			url = matches[1], 
@@ -100,36 +102,41 @@ do
 		local header_size = get_jpg_header_size(arr)
 		print("JPEG header size: " .. header_size .. " bytes")
 		
-		-- randomize bytes randomly
-		for i=header_size + 1, #arr - 4 do
-			if math.random() <= 0.0001 then
-				print("Corrupting byte " .. i)
-				arr[i] = math.floor(math.random() * 255)
-			end
+		-- corrupt a set amount of bytes
+		local data_end = #arr - 4
+		local corrupt_count = matches[2]
+		if not corrupt_count then
+			corrupt_count = 20
 		end
-		
-		-- convert back to a string so we can write it to file
-		local glitched = ""
-		for i=1, #arr do
-			glitched = glitched .. string.char(arr[i])
+		for i=1, corrupt_count do
+			local index = math.random(header_size, data_end)
+			print("Corrupting byte " .. index)
+			arr[index] = math.floor(math.random() * 255)
 		end
-		arr = nil
 		
 		-- write glitched jpg
+		print("Writing glitched.jpg")
 		local out = assert(io.open("/tmp/"..stamp..".jpg", "wb"))
-		out:write(glitched)
+		local glitched = ""
+		for i=1, #arr do
+			out:write(string.char(arr[i]))
+		end
+		arr = nil
 		assert(out:close())
 		
 		-- send glitched jpg
 		local receiver = get_receiver(msg)
 		send_photo(receiver, "/tmp/"..stamp..".jpg", function() end, function() end)
+		
+		http.TIMEOUT = default_timeout
 	end
 	
 	return {
 		description = "Randomly glitches a JPEG image", 
-		usage = "!glitch [url]: glitches the JPEG image retrieved from _url_", 
+		usage = "!glitch [url] [amount]: glitches the JPEG image retrieved from _url_ " .. 
+				"by corrupting _amount_ bytes. Amount is optional and defaults to 20 bytes.", 
 		patterns = {
-			"^!glitch (.*)$"
+			"^!glitch ([^ ]*) ?([0-9]*)?$"
 		}, 
 		run = run
 	}
