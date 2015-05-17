@@ -5,3 +5,5 @@ data/
 *~
 plugins/lain.lua
 lolisp/
+plugins/spam.lua
+plugins/rei.lua
